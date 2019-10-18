@@ -17,7 +17,6 @@ class KaoyanPipeline(object):
         <head>
             <meta charset="UTF-8">
         </head>
-        
         <body>
         {}
         </body>
@@ -50,12 +49,65 @@ class KaoyanPipeline(object):
     def download_pdf(self, item, dir_path):
         if item['accessory_pdf'] and item['accessory_name']:
             for pdf, pdf_name in zip(item['accessory_pdf'], item['accessory_name']):
+                # 下载pdf
                 if 'pdf' in pdf:
                     data = requests.get(pdf).content
                     if data:
                         accessory_path = dir_path + pdf_name + '.pdf'
                         with open(accessory_path, 'wb') as f:
                             f.write(data)
+                # 下载压缩包zip格式
+                elif pdf.endswith('.zip'):
+                    data = requests.get(pdf).content
+                    if data:
+                        accessory_path = dir_path + pdf_name + '.zip'
+                        with open(accessory_path, 'wb') as f:
+                            f.write(data)
+                            time.sleep(1)
+                # 下载压缩包rar格式
+                elif pdf.endswith('.rar'):
+                    data = requests.get(pdf).content
+                    if data:
+                        accessory_path = dir_path + pdf_name + '.rar'
+                        with open(accessory_path, 'wb') as f:
+                            f.write(data)
+                            time.sleep(1)
+                # 下载word文档
+                elif 'doc' in pdf:
+                    data = requests.get(pdf).content
+                    if data:
+                        accessory_path = dir_path + pdf_name + '.doc'
+                        with open(accessory_path, 'wb') as f:
+                            f.write(data)
+                            time.sleep(1)
+                # 下载ppt
+                elif 'PPT' in pdf or 'ppt' in pdf:
+                    data = requests.get(pdf).content
+                    if data:
+                        accessory_path = dir_path + pdf_name + '.ppt'
+                        with open(accessory_path, 'wb') as f:
+                            f.write(data)
+                            time.sleep(1)
+                # 下载表格xlsx格式
+                elif 'XLSx' in pdf or 'xlsx' in pdf:
+                    data = requests.get(pdf).content
+                    if data:
+                        accessory_path = dir_path + pdf_name + '.xlsx'
+                        with open(accessory_path, 'wb') as f:
+                            f.write(data)
+                            time.sleep(1)
+                        return True
+                # 下载表格xls格式
+                elif 'XLS' in pdf or 'xls' in pdf:
+                    data = requests.get(pdf).content
+                    if data:
+                        accessory_path = dir_path + pdf_name + '.xls'
+                        with open(accessory_path, 'wb') as f:
+                            f.write(data)
+                            time.sleep(1)
+                        return True
+                else:
+                    return None
 
     def content_pdf(self, item, dir_path):
         """

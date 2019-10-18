@@ -20,20 +20,27 @@ class KaoyanSpiderSpider(scrapy.Spider):
         elems = response.xpath('//dl[@class="schoolListItem"]')
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
-            tag_names = elem.xpath('./dd[@class="quickItem"]/a')
-            for name in tag_names:
-                tag_name = name.xpath('./text()').extract_first()
-                meta = {
-                    'school_name':school_name if school_name else '',
-                    'tag_name': tag_name if tag_name else ''
-                }
-                tag_url = name.xpath('./@href').extract_first()
-                if tag_url:
-                    if 'http' not in tag_url:
-                        tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
-                break
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             break
+
+    def parse_tag_list(self, response):
+        elems = [response.xpath('//ul[@class="subGuideList"]/li')[6]]
+        for elem in elems:
+            meta = response.meta
+            tag_name = elem.xpath('./a/text()').extract_first()
+            meta['tag_name'] = tag_name
+            tag_url = elem.xpath('./a/@href').extract_first()
+            if tag_url:
+                if 'http' not in tag_url:
+                    tag_url = self.base_url + tag_url
+                yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
@@ -77,7 +84,7 @@ class KaoyanSpiderSpider(scrapy.Spider):
         content = response.xpath('//div[@class="article"]').extract_first()
         if content:
             content = content+'<br>'+ item['content']
-            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href')
+            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
             if next_url:
                 item['content'] = self.deal_content(content) if content else ''
                 yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
@@ -108,64 +115,3 @@ class KaoyanSpiderSpider(scrapy.Spider):
         content = content.replace('&amp;', '')
         content = content.replace('\u3000', '')
         return content
-
-    # def parse_content(self, content):
-    #     """
-    #     :param content: 去除、替换不符合的标签
-    #     :return: 符合的content
-    #     """
-    #     elem1 = re.compile(r'<script.*?>.*?</script>', re.S)
-    #     elem2 = re.compile(r'<section.*?>|</section>', re.S)
-    #     elem3 = re.compile(r'<ins.*?>.*?</ins>', re.S)
-    #     elem4 = re.compile(r'<h1.*?>|</h1>', re.S)
-    #     elem5 = re.compile(r'<h2.*?>|</h2>', re.S)
-    #     elem6 = re.compile(r'<h4.*?>|</h4>', re.S)
-    #     elem7 = re.compile(r'<h3.*?>.*?</h3>', re.S)
-    #     elem8 = re.compile(r'<embed.*?>', re.S)
-    #     elem9 = re.compile(r'<span.*?>|</span>', re.S)
-    #     elem10 = re.compile(r'<a.*?>|</a>', re.S)
-    #     elem11 = re.compile(r'<span.*?>|</span>', re.S)
-    #     elem12 = re.compile(r'<p.*?>', re.S)
-    #     elem13 = re.compile(r'<ul.*?>', re.S)
-    #     elem14 = re.compile(r'<li.*?>', re.S)
-    #     elem15 = re.compile(r'<img.*?>|<p><img.*?>|<img.*?></p>|<p><strong><img.*?>|<img.*?></strong></p>', re.S)
-    #     elem16 = re.compile(r'<br.*?>', re.S)
-    #     elem17 = re.compile(r'<p></p>', re.S)
-    #     elem18 = re.compile(r'<p><br></p>', re.S)
-    #     elem19 = re.compile(r'<strong.*?>', re.S)
-    #     elem20 = re.compile(r'<input.*?>', re.S)
-    #     elem21 = re.compile(r'<blockquote.*?>|</blockquote>', re.S)
-    #
-    #     content = elem1.sub('', content)
-    #     content = elem2.sub('', content)
-    #     content = elem3.sub('', content)
-    #     content = elem4.sub('', content)
-    #     content = elem5.sub('', content)
-    #     content = elem6.sub('', content)
-    #     content = elem7.sub('', content)
-    #     content = elem8.sub('', content)
-    #     content = elem9.sub('', content)
-    #     content = elem10.sub('', content)
-    #     content = elem11.sub('', content)
-    #     content = elem12.sub('<p>', content)
-    #     content = elem13.sub('<ul>', content)
-    #     content = elem14.sub('<li>', content)
-    #     content = content.replace(' ', '')
-    #     content = elem15.sub('<img src="%s">', content)
-    #     content = elem16.sub('<br>', content)
-    #     content = elem17.sub('', content)
-    #     content = elem18.sub('', content)
-    #     content = elem19.sub('<strong>', content)
-    #     content = elem20.sub('', content)
-    #     content = elem21.sub('', content)
-    #
-    #     content = content.replace('\s', '')
-    #     content = content.replace('\n', '')
-    #     content = content.replace('\r', '')
-    #     content = content.replace('\t', '')
-    #     content = content.replace('\xa0', '')
-    #     content = content.replace('\r\n', '')
-    #     content = content.replace('&amp;', '')
-    #     content = content.replace('\u3000', '')
-    #
-    #     return content
