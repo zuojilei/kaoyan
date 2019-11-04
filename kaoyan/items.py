@@ -23,3 +23,9 @@ class KaoyanItem(scrapy.Item):
     accessory_pdf = scrapy.Field()
     #附件名
     accessory_name =scrapy.Field()
+
+    src = scrapy.Field()
+
+    sid = scrapy.Field()
+
+    download_status = scrapy.Field()

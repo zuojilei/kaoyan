@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import scrapy,re
+import scrapy,re, time
 from kaoyan.items import KaoyanItem
+from kaoyan.tool.common_def import *
 
 class KaoyanSpiderSpider(scrapy.Spider):
     name = 'kaoyan_spider'
@@ -31,8 +32,9 @@ class KaoyanSpiderSpider(scrapy.Spider):
             break
 
     def parse_tag_list(self, response):
-        elems = [response.xpath('//ul[@class="subGuideList"]/li')[6]]
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
         for elem in elems:
+            time.sleep(2)
             meta = response.meta
             tag_name = elem.xpath('./a/text()').extract_first()
             meta['tag_name'] = tag_name
@@ -48,7 +50,7 @@ class KaoyanSpiderSpider(scrapy.Spider):
         for elem in elems:
             meta = response.meta
             content_title = elem.xpath('./a/text()').extract_first()
-            meta['content_title'] = content_title if content_title else ''
+            meta['content_title'] = deal_title(content_title) if content_title else ''
             meta['content'] = ''
             detail_url = elem.xpath('./a/@href').extract_first()
             if detail_url:
@@ -64,6 +66,9 @@ class KaoyanSpiderSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         item = KaoyanItem()
+        item['src'] = response.url
+        item['sid'] =  gen_sid(response.url)
+        item['download_status'] = 0
         item['school_name'] = response.meta['school_name']
         item['tag_name'] = response.meta['tag_name']
         item['content_title'] = response.meta['content_title']
@@ -98,14 +103,14 @@ class KaoyanSpiderSpider(scrapy.Spider):
         pattern1 = re.compile(r'<div class="qqShare".*?>.*?</div>',re.S)
         pattern2 = re.compile(r'<script type="text/javascript">.*?</script>',re.S)
         pattern3 = re.compile(r'<!-- qq分享.*?>',re.S)
-        # pattern4 = re.compile(r'<a.*?>',re.S)
-        # pattern5 = re.compile(r'</a>', re.S)
+        pattern4 = re.compile(r'<p><strong>相关链接：.*?</p>',re.S)
+        pattern5 = re.compile(r'<table width="618"><tbody>.*?</tbody></table>', re.S)
 
         content = pattern1.sub('', content)
         content = pattern2.sub('', content)
         content = pattern3.sub('', content)
-        # content = pattern4.sub('<p>', content)
-        # content = pattern5.sub('</p>', content)
+        content = pattern4.sub('', content)
+        content = pattern5.sub('', content)
         content = content.replace('\s', '')
         content = content.replace('\n', '')
         content = content.replace('\r', '')

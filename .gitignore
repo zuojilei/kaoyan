@@ -4,3 +4,5 @@
 
 kaoyan/spiders/__pycache__/
 kaoyan/__pycache__/
+kaoyan/db/__pycache__/
+kaoyan/tool/__pycache__/

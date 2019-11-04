@@ -6,6 +6,8 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import os,time,requests,pdfkit
+from kaoyan.db.reports_mongo import ReportsDao
+from kaoyan.tool.common_def import str_wash
 
 class KaoyanPipeline(object):
 
@@ -22,17 +24,21 @@ class KaoyanPipeline(object):
         </body>
         </html>
         """
+        self.mongo = ReportsDao()
+        self.mongo.set_collects('kaoyan')
 
     def process_item(self, item, spider):
-        dir_path = self.file_path(item)
-        self.content_pdf(item, dir_path)
-        time.sleep(2)
-        self.download_pdf(item, dir_path)
+        if self.mongo.is_exist_sid(item['sid']):
+            self.mongo.insert_one(str_wash(dict(item)))
+            dir_path = self.file_path(item)
+            self.content_pdf(item, dir_path)
+            time.sleep(2)
+            self.download_pdf(item, dir_path)
         return item
 
     def file_path(self, item):
         if item['school_name'] and item['tag_name'] and item['content_title']:
-            dir_path = 'C:\\data\\%s\\%s\\%s\\' % (item['school_name'],item['tag_name'], item['content_title'])
+            dir_path = 'D:\\data\\%s\\%s\\%s\\' % (item['school_name'],item['tag_name'], item['content_title'])
             is_exists = os.path.exists(dir_path)
             if not is_exists:
                 os.makedirs(dir_path)
@@ -122,6 +128,6 @@ class KaoyanPipeline(object):
             config = pdfkit.configuration(wkhtmltopdf=path_wk)
             pdfkit.from_string(html, file, configuration=config)
             item['download_status'] = 1
-            # return item
+            return item
         except Exception as e:
             print(e)
