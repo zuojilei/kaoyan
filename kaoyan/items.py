@@ -29,3 +29,5 @@ class KaoyanItem(scrapy.Item):
     sid = scrapy.Field()
 
     download_status = scrapy.Field()
+
+    pdate= scrapy.Field()

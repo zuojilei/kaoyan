@@ -18,7 +18,7 @@ class KaoyanSpiderSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')
+        elems = response.xpath('//dl[@class="schoolListItem"]')[1:11]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -28,35 +28,43 @@ class KaoyanSpiderSpider(scrapy.Spider):
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
-            break
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
         for elem in elems:
-            time.sleep(2)
-            meta = response.meta
-            tag_name = elem.xpath('./a/text()').extract_first()
-            meta['tag_name'] = tag_name
-            tag_url = elem.xpath('./a/@href').extract_first()
-            if tag_url:
-                if 'http' not in tag_url:
-                    tag_url = self.base_url + tag_url
-                yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            try:
+                time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('标签地址不允许访问')
+                continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
         meta = response.meta
         for elem in elems:
-            meta = response.meta
-            content_title = elem.xpath('./a/text()').extract_first()
-            meta['content_title'] = deal_title(content_title) if content_title else ''
-            meta['content'] = ''
-            detail_url = elem.xpath('./a/@href').extract_first()
-            if detail_url:
-                if 'http' not in detail_url:
-                    detail_url = self.base_url + detail_url
-                yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('获取列表错误：',e)
+                continue
 
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
@@ -65,58 +73,50 @@ class KaoyanSpiderSpider(scrapy.Spider):
             yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
-        item = KaoyanItem()
-        item['src'] = response.url
-        item['sid'] =  gen_sid(response.url)
-        item['download_status'] = 0
-        item['school_name'] = response.meta['school_name']
-        item['tag_name'] = response.meta['tag_name']
-        item['content_title'] = response.meta['content_title']
-        item['content'] = response.meta['content']
-        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-        if accessory_pdfs:
-            accessory_pdf = []
-            for pdf in accessory_pdfs:
-                if 'http' not in pdf:
-                    pdf = self.base_url +pdf
-                accessory_pdf.append(pdf)
-            item['accessory_pdf'] = accessory_pdf
-            item['accessory_name'] = accessory_name
-        else:
-            item['accessory_pdf'] = []
-            item['accessory_name'] = []
-        content = response.xpath('//div[@class="article"]').extract_first()
-        if content:
-            content = content+'<br>'+ item['content']
-            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-            if next_url:
-                item['content'] = self.deal_content(content) if content else ''
-                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
-            else:
-                item['content'] = self.deal_content(content) if content else ''
-        else:
-            item['content'] = ''
-        yield item
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
 
-    def deal_content(self, content):
-        pattern1 = re.compile(r'<div class="qqShare".*?>.*?</div>',re.S)
-        pattern2 = re.compile(r'<script type="text/javascript">.*?</script>',re.S)
-        pattern3 = re.compile(r'<!-- qq分享.*?>',re.S)
-        pattern4 = re.compile(r'<p><strong>相关链接：.*?</p>',re.S)
-        pattern5 = re.compile(r'<table width="618"><tbody>.*?</tbody></table>', re.S)
 
-        content = pattern1.sub('', content)
-        content = pattern2.sub('', content)
-        content = pattern3.sub('', content)
-        content = pattern4.sub('', content)
-        content = pattern5.sub('', content)
-        content = content.replace('\s', '')
-        content = content.replace('\n', '')
-        content = content.replace('\r', '')
-        content = content.replace('\t', '')
-        content = content.replace('\xa0', '')
-        content = content.replace('\r\n', '')
-        content = content.replace('&amp;', '')
-        content = content.replace('\u3000', '')
-        return content
