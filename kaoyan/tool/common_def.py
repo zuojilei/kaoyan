@@ -78,8 +78,9 @@ def deal_content(content):
     pattern3 = re.compile(r'<!-- qq分享.*?>',re.S)
     pattern4 = re.compile(r'<p><strong>相关链接：.*?</p>',re.S)
     pattern5 = re.compile(r'<table width="618"><tbody>.*?</tbody></table>', re.S)
-    pattern6 = re.compile(r'<table.*?>.*?<tbody><tr><td width="550"><strong>友情提示：.*?</td></tr></tbody></table>', re.S)
+    pattern6 = re.compile(r'<table.*?>.*?<tbody><tr><td width=.*?><strong>友情提示：.*?</td></tr></tbody></table>', re.S)
     pattern7 = re.compile(r'<br><br>点击【<a.*?</p>', re.S)
+    pattern8 = re.compile(r'<p><strong>【相关阅读】.*?</p>', re.S)
 
     content = pattern1.sub('', content)
     content = pattern2.sub('', content)
@@ -88,6 +89,7 @@ def deal_content(content):
     content = pattern5.sub('', content)
     content = pattern6.sub('', content)
     content = pattern7.sub('</p>', content)
+    content = pattern8.sub('', content)
 
     content = content.replace('\s', '')
     content = content.replace('\n', '')

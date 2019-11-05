@@ -3,8 +3,8 @@ import scrapy,re, time
 from kaoyan.items import KaoyanItem
 from kaoyan.tool.common_def import *
 
-class KaoyanSpiderSpider(scrapy.Spider):
-    name = 'kaoyan_spider'
+class KaoyanOneSpider(scrapy.Spider):
+    name = 'kaoyan_one'
     allowed_domains = ['kaoyan.com']
     start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
@@ -14,11 +14,11 @@ class KaoyanSpiderSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[1:11]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[0:11]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -33,9 +33,10 @@ class KaoyanSpiderSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
         for elem in elems:
             try:
-                time.sleep(1)
+                # time.sleep(1)
                 meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
                 meta['tag_name'] = tag_name
@@ -45,7 +46,7 @@ class KaoyanSpiderSpider(scrapy.Spider):
                         tag_url = self.base_url + tag_url
                     yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
-                print('标签地址不允许访问')
+                print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
@@ -63,7 +64,7 @@ class KaoyanSpiderSpider(scrapy.Spider):
                         detail_url = self.base_url + detail_url
                     yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
             except Exception as e:
-                print('获取列表错误：',e)
+                print('详情页地址不允许访问',e)
                 continue
 
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
@@ -120,3 +121,1063 @@ class KaoyanSpiderSpider(scrapy.Spider):
             print(e)
 
 
+class KaoyanTwoSpider(scrapy.Spider):
+    name = 'kaoyan_two'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[11:21]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanthreeSpider(scrapy.Spider):
+    name = 'kaoyan_three'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[21:31]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanFourSpider(scrapy.Spider):
+    name = 'kaoyan_four'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[31:41]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanFiveSpider(scrapy.Spider):
+    name = 'kaoyan_five'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[41:51]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanSixSpider(scrapy.Spider):
+    name = 'kaoyan_six'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[51:61]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanSevenSpider(scrapy.Spider):
+    name = 'kaoyan_seven'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[61:71]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanEightSpider(scrapy.Spider):
+    name = 'kaoyan_eight'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[71:81]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanNineSpider(scrapy.Spider):
+    name = 'kaoyan_Nine'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[81:91]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)
+
+
+class KaoyanElevenSpider(scrapy.Spider):
+    name = 'kaoyan_eleven'
+    allowed_domains = ['kaoyan.com']
+    start_urls = ['http://www.kaoyan.com/beijing/']
+    base_url = 'http://www.kaoyan.com'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'kaoyan.pipelines.KaoyanPipeline': 300,
+            # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
+            # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
+        },
+        # 'DOWNLOAD_DELAY': 1
+    }
+
+    def parse(self, response):
+        elems = response.xpath('//dl[@class="schoolListItem"]')[91:101]
+        for elem in elems:
+            school_name = elem.xpath('./dt/a/text()').extract_first()
+            url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
+            meta = {
+                'school_name':school_name if school_name else ''
+            }
+            if url:
+                if 'http' not in url:
+                    url = self.base_url + url
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
+            # break
+
+    def parse_tag_list(self, response):
+        elems = response.xpath('//ul[@class="subGuideList"]/li')
+        del elems[7]
+        for elem in elems:
+            try:
+                # time.sleep(1)
+                meta = response.meta
+                tag_name = elem.xpath('./a/text()').extract_first()
+                meta['tag_name'] = tag_name
+                tag_url = elem.xpath('./a/@href').extract_first()
+                if tag_url:
+                    if 'http' not in tag_url:
+                        tag_url = self.base_url + tag_url
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
+            except Exception as e:
+                print('获取标签地址错误', e)
+                continue
+
+    def parse_list(self, response):
+        elems = response.xpath('//ul[@class="subList"]/li')
+        meta = response.meta
+        for elem in elems:
+            try:
+                meta = response.meta
+                content_title = elem.xpath('./a/text()').extract_first()
+                meta['content_title'] = deal_title(content_title) if content_title else ''
+                meta['content'] = ''
+                detail_url = elem.xpath('./a/@href').extract_first()
+                if detail_url:
+                    if 'http' not in detail_url:
+                        detail_url = self.base_url + detail_url
+                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta=meta,dont_filter=True)
+            except Exception as e:
+                print('详情页地址不允许访问',e)
+                continue
+
+        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        if next_page_url:
+            if 'http' not in next_page_url:
+                next_page_url = self.base_url + next_page_url
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+
+    def parse_detail(self, response):
+        try:
+            item = KaoyanItem()
+            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+            if pdate:
+                pdate = pdate.split(' ')[0]
+                year = int(pdate.split('-')[0])
+                if year < 2015:
+                    print('2015年以后的')
+                    return
+                else:
+                    item['src'] = response.url
+                    item['sid'] =  gen_sid(response.url)
+                    item['pdate'] = pdate
+                    item['download_status'] = 0
+                    item['school_name'] = response.meta['school_name']
+                    item['tag_name'] = response.meta['tag_name']
+                    item['content_title'] = response.meta['content_title']
+                    item['content'] = response.meta['content']
+                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                    if accessory_pdfs:
+                        accessory_pdf = []
+                        for pdf in accessory_pdfs:
+                            if 'http' not in pdf:
+                                pdf = self.base_url +pdf
+                            accessory_pdf.append(pdf)
+                        item['accessory_pdf'] = accessory_pdf
+                        item['accessory_name'] = accessory_name
+                    else:
+                        item['accessory_pdf'] = []
+                        item['accessory_name'] = []
+                    content = response.xpath('//div[@class="article"]').extract_first()
+                    if content:
+                        content = content+'<br>'+ item['content']
+                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                        if next_url:
+                            item['content'] = deal_content(content) if content else ''
+                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        else:
+                            item['content'] = deal_content(content) if content else ''
+                    else:
+                        item['content'] = ''
+                    yield item
+        except Exception as e:
+            print(e)

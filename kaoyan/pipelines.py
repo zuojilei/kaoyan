@@ -63,6 +63,8 @@ class KaoyanPipeline(object):
                             accessory_path = dir_path + pdf_name + '.pdf'
                             with open(accessory_path, 'wb') as f:
                                 f.write(data)
+                                time.sleep(1)
+                                print('*************pdf文件下载成功**************')
                     # 下载压缩包zip格式
                     elif pdf.endswith('.zip'):
                         data = requests.get(pdf).content
@@ -71,6 +73,7 @@ class KaoyanPipeline(object):
                             with open(accessory_path, 'wb') as f:
                                 f.write(data)
                                 time.sleep(1)
+                                print('*************zip文件下载成功**************')
                     # 下载压缩包rar格式
                     elif pdf.endswith('.rar'):
                         data = requests.get(pdf).content
@@ -79,7 +82,8 @@ class KaoyanPipeline(object):
                             with open(accessory_path, 'wb') as f:
                                 f.write(data)
                                 time.sleep(1)
-                    # 下载word文档
+                                print('*************rar文件下载成功**************')
+                    # 下载doc文档
                     elif 'doc' in pdf:
                         data = requests.get(pdf).content
                         if data:
@@ -87,6 +91,16 @@ class KaoyanPipeline(object):
                             with open(accessory_path, 'wb') as f:
                                 f.write(data)
                                 time.sleep(1)
+                                print('*************doc文件下载成功**************')
+                    # 下载docx文档
+                    elif 'docx' in pdf:
+                        data = requests.get(pdf).content
+                        if data:
+                            accessory_path = dir_path + pdf_name + '.doc'
+                            with open(accessory_path, 'wb') as f:
+                                f.write(data)
+                                time.sleep(1)
+                                print('*************docx文件下载成功**************')
                     # 下载ppt
                     elif 'PPT' in pdf or 'ppt' in pdf:
                         data = requests.get(pdf).content
@@ -95,6 +109,16 @@ class KaoyanPipeline(object):
                             with open(accessory_path, 'wb') as f:
                                 f.write(data)
                                 time.sleep(1)
+                                print('*************ppt文件下载成功**************')
+                    # 下载pptx
+                    elif 'pptx' in pdf:
+                        data = requests.get(pdf).content
+                        if data:
+                            accessory_path = dir_path + pdf_name + '.pptx'
+                            with open(accessory_path, 'wb') as f:
+                                f.write(data)
+                                time.sleep(1)
+                                print('*************ppt文件下载成功**************')
                     # 下载表格xlsx格式
                     elif 'XLSx' in pdf or 'xlsx' in pdf:
                         data = requests.get(pdf).content
@@ -103,7 +127,7 @@ class KaoyanPipeline(object):
                             with open(accessory_path, 'wb') as f:
                                 f.write(data)
                                 time.sleep(1)
-                            return True
+                                print('*************xlsx文件下载成功**************')
                     # 下载表格xls格式
                     elif 'XLS' in pdf or 'xls' in pdf:
                         data = requests.get(pdf).content
@@ -112,7 +136,7 @@ class KaoyanPipeline(object):
                             with open(accessory_path, 'wb') as f:
                                 f.write(data)
                                 time.sleep(1)
-                            return True
+                                print('*************xls文件下载成功**************')
                     else:
                         return None
                 except Exception as e:
