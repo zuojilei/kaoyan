@@ -56,89 +56,84 @@ class KaoyanPipeline(object):
         if item['accessory_pdf'] and item['accessory_name']:
             for pdf, pdf_name in zip(item['accessory_pdf'], item['accessory_name']):
                 try:
-                    # 下载pdf
-                    if 'pdf' in pdf:
-                        data = requests.get(pdf).content
-                        if data:
+                    response = requests.get(url=pdf, timeout=15, verify=False)
+                    if response.status_code != 200:
+                        print(response.url, response.status_code)
+                        continue
+                    else:
+                        # 下载pdf
+                        if 'pdf' in pdf:
                             accessory_path = dir_path + pdf_name + '.pdf'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************pdf文件下载成功**************')
-                    # 下载压缩包zip格式
-                    elif pdf.endswith('.zip'):
-                        data = requests.get(pdf).content
-                        if data:
+
+                        # 下载压缩包zip格式
+                        elif pdf.endswith('.zip'):
                             accessory_path = dir_path + pdf_name + '.zip'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************zip文件下载成功**************')
-                    # 下载压缩包rar格式
-                    elif pdf.endswith('.rar'):
-                        data = requests.get(pdf).content
-                        if data:
+
+                        # 下载压缩包rar格式
+                        elif pdf.endswith('.rar'):
                             accessory_path = dir_path + pdf_name + '.rar'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************rar文件下载成功**************')
-                    # 下载doc文档
-                    elif 'doc' in pdf:
-                        data = requests.get(pdf).content
-                        if data:
+
+                        # 下载doc文档
+                        elif 'doc' in pdf:
                             accessory_path = dir_path + pdf_name + '.doc'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************doc文件下载成功**************')
-                    # 下载docx文档
-                    elif 'docx' in pdf:
-                        data = requests.get(pdf).content
-                        if data:
-                            accessory_path = dir_path + pdf_name + '.doc'
+
+                        # 下载docx文档
+                        elif 'docx' in pdf:
+                            accessory_path = dir_path + pdf_name + '.docx'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************docx文件下载成功**************')
-                    # 下载ppt
-                    elif 'PPT' in pdf or 'ppt' in pdf:
-                        data = requests.get(pdf).content
-                        if data:
+
+                        # 下载ppt
+                        elif 'PPT' in pdf or 'ppt' in pdf:
                             accessory_path = dir_path + pdf_name + '.ppt'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************ppt文件下载成功**************')
-                    # 下载pptx
-                    elif 'pptx' in pdf:
-                        data = requests.get(pdf).content
-                        if data:
+
+                        # 下载pptx
+                        elif 'pptx' in pdf:
                             accessory_path = dir_path + pdf_name + '.pptx'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************ppt文件下载成功**************')
-                    # 下载表格xlsx格式
-                    elif 'XLSx' in pdf or 'xlsx' in pdf:
-                        data = requests.get(pdf).content
-                        if data:
+
+                        # 下载表格xlsx格式
+                        elif 'XLSx' in pdf or 'xlsx' in pdf:
                             accessory_path = dir_path + pdf_name + '.xlsx'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************xlsx文件下载成功**************')
-                    # 下载表格xls格式
-                    elif 'XLS' in pdf or 'xls' in pdf:
-                        data = requests.get(pdf).content
-                        if data:
+
+                        # 下载表格xls格式
+                        elif 'XLS' in pdf or 'xls' in pdf:
                             accessory_path = dir_path + pdf_name + '.xls'
                             with open(accessory_path, 'wb') as f:
-                                f.write(data)
+                                f.write(response.content)
                                 time.sleep(1)
                                 print('*************xls文件下载成功**************')
-                    else:
-                        return None
+                        else:
+                            return None
                 except Exception as e:
                     print(e)
                     continue

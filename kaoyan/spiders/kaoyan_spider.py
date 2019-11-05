@@ -14,7 +14,7 @@ class KaoyanOneSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -75,50 +75,54 @@ class KaoyanOneSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] =  gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url +pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content+'<br>'+ item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanTwoSpider(scrapy.Spider):
@@ -132,7 +136,7 @@ class KaoyanTwoSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -193,50 +197,55 @@ class KaoyanTwoSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanthreeSpider(scrapy.Spider):
@@ -250,7 +259,7 @@ class KaoyanthreeSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -311,50 +320,55 @@ class KaoyanthreeSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanFourSpider(scrapy.Spider):
@@ -368,7 +382,7 @@ class KaoyanFourSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -429,50 +443,55 @@ class KaoyanFourSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanFiveSpider(scrapy.Spider):
@@ -486,7 +505,7 @@ class KaoyanFiveSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -547,50 +566,55 @@ class KaoyanFiveSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanSixSpider(scrapy.Spider):
@@ -604,7 +628,7 @@ class KaoyanSixSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -665,50 +689,55 @@ class KaoyanSixSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanSevenSpider(scrapy.Spider):
@@ -722,7 +751,7 @@ class KaoyanSevenSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -783,50 +812,55 @@ class KaoyanSevenSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanEightSpider(scrapy.Spider):
@@ -840,7 +874,7 @@ class KaoyanEightSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -901,54 +935,59 @@ class KaoyanEightSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanNineSpider(scrapy.Spider):
-    name = 'kaoyan_Nine'
+    name = 'kaoyan_nine'
     allowed_domains = ['kaoyan.com']
     start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
@@ -958,7 +997,7 @@ class KaoyanNineSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -1019,50 +1058,55 @@ class KaoyanNineSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
 
 
 class KaoyanElevenSpider(scrapy.Spider):
@@ -1076,7 +1120,7 @@ class KaoyanElevenSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        # 'DOWNLOAD_DELAY': 1
+        'DOWNLOAD_DELAY': 1
     }
 
     def parse(self, response):
@@ -1137,47 +1181,52 @@ class KaoyanElevenSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
-            item = KaoyanItem()
-            pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
-            if pdate:
-                pdate = pdate.split(' ')[0]
-                year = int(pdate.split('-')[0])
-                if year < 2015:
-                    print('2015年以后的')
-                    return
-                else:
-                    item['src'] = response.url
-                    item['sid'] =  gen_sid(response.url)
-                    item['pdate'] = pdate
-                    item['download_status'] = 0
-                    item['school_name'] = response.meta['school_name']
-                    item['tag_name'] = response.meta['tag_name']
-                    item['content_title'] = response.meta['content_title']
-                    item['content'] = response.meta['content']
-                    accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
-                    accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
-                    if accessory_pdfs:
-                        accessory_pdf = []
-                        for pdf in accessory_pdfs:
-                            if 'http' not in pdf:
-                                pdf = self.base_url +pdf
-                            accessory_pdf.append(pdf)
-                        item['accessory_pdf'] = accessory_pdf
-                        item['accessory_name'] = accessory_name
+            if response.status != 200:
+                print(response.url, '：无响应', response.status)
+                return
+            else:
+                item = KaoyanItem()
+                pdate = response.xpath('//div[@class="articleInfo"]/span[1]/text()').extract_first()
+                if pdate:
+                    pdate = pdate.split(' ')[0]
+                    year = int(pdate.split('-')[0])
+                    if year < 2015:
+                        print('2015年以后的')
+                        return
                     else:
-                        item['accessory_pdf'] = []
-                        item['accessory_name'] = []
-                    content = response.xpath('//div[@class="article"]').extract_first()
-                    if content:
-                        content = content+'<br>'+ item['content']
-                        next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-                        if next_url:
-                            item['content'] = deal_content(content) if content else ''
-                            yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item':item}, dont_filter=True)
+                        item['src'] = response.url
+                        item['sid'] = gen_sid(response.url)
+                        item['pdate'] = pdate
+                        item['download_status'] = 0
+                        item['school_name'] = response.meta['school_name']
+                        item['tag_name'] = response.meta['tag_name']
+                        item['content_title'] = response.meta['content_title']
+                        item['content'] = response.meta['content']
+                        accessory_pdfs = response.xpath('//div[@class="articleCon"]//a/@href').extract()
+                        accessory_name = response.xpath('//div[@class="articleCon"]//a/text()').extract()
+                        if accessory_pdfs:
+                            accessory_pdf = []
+                            for pdf in accessory_pdfs:
+                                if 'http' not in pdf:
+                                    pdf = self.base_url + pdf
+                                accessory_pdf.append(pdf)
+                            item['accessory_pdf'] = accessory_pdf
+                            item['accessory_name'] = accessory_name
                         else:
-                            item['content'] = deal_content(content) if content else ''
-                    else:
-                        item['content'] = ''
-                    yield item
+                            item['accessory_pdf'] = []
+                            item['accessory_name'] = []
+                        content = response.xpath('//div[@class="article"]').extract_first()
+                        if content:
+                            content = content + '<br>' + item['content']
+                            next_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+                            if next_url:
+                                item['content'] = deal_content(content) if content else ''
+                                yield scrapy.Request(url=next_url, callback=self.parse_detail, meta={'item': item},
+                                                     dont_filter=True)
+                            else:
+                                item['content'] = deal_content(content) if content else ''
+                        else:
+                            item['content'] = ''
+                        yield item
         except Exception as e:
-            print(e)
+            print(e, response.url)
