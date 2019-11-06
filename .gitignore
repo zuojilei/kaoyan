@@ -1,6 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 
 .idea
+main.py
 
 kaoyan/spiders/__pycache__/
 kaoyan/__pycache__/
