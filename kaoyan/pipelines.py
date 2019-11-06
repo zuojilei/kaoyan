@@ -150,6 +150,7 @@ class KaoyanPipeline(object):
             file = dir_path + item['content_title'] + '.pdf'
             config = pdfkit.configuration(wkhtmltopdf=path_wk)
             pdfkit.from_string(html, file, configuration=config)
+            print('*************网页合成pdf成功*****************')
             item['download_status'] = 1
             return item
         except Exception as e:

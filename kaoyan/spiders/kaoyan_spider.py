@@ -18,16 +18,15 @@ class KaoyanOneSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[101:111]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[0:11]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name':school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item":item},dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta,dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -35,24 +34,25 @@ class KaoyanOneSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item":item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -64,12 +64,12 @@ class KaoyanOneSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问',e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item":item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -134,16 +134,15 @@ class KaoyanTwoSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[111:121]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[11:21]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -151,24 +150,25 @@ class KaoyanTwoSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -181,12 +181,12 @@ class KaoyanTwoSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -252,16 +252,15 @@ class KaoyanthreeSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[121:131]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[21:31]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -269,24 +268,25 @@ class KaoyanthreeSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -299,12 +299,12 @@ class KaoyanthreeSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -372,14 +372,13 @@ class KaoyanFourSpider(scrapy.Spider):
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[31:41]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -387,24 +386,25 @@ class KaoyanFourSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -417,12 +417,12 @@ class KaoyanFourSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -490,14 +490,13 @@ class KaoyanFiveSpider(scrapy.Spider):
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[41:51]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -505,24 +504,25 @@ class KaoyanFiveSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -535,12 +535,12 @@ class KaoyanFiveSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -608,14 +608,13 @@ class KaoyanSixSpider(scrapy.Spider):
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[51:61]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -623,24 +622,25 @@ class KaoyanSixSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -653,12 +653,12 @@ class KaoyanSixSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -726,14 +726,13 @@ class KaoyanSevenSpider(scrapy.Spider):
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[61:71]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -741,24 +740,25 @@ class KaoyanSevenSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -771,12 +771,12 @@ class KaoyanSevenSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -844,14 +844,13 @@ class KaoyanEightSpider(scrapy.Spider):
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[71:81]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -859,24 +858,25 @@ class KaoyanEightSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -889,12 +889,12 @@ class KaoyanEightSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -962,14 +962,13 @@ class KaoyanNineSpider(scrapy.Spider):
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[81:91]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -977,24 +976,25 @@ class KaoyanNineSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -1007,12 +1007,12 @@ class KaoyanNineSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -1080,14 +1080,13 @@ class KaoyanElevenSpider(scrapy.Spider):
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[91:101]
         for elem in elems:
-            item = KaoyanItem()
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            item['school_name'] = school_name if school_name else ''
+            meta = {'school_name': school_name if school_name else ''}
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
-                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta={"item": item}, dont_filter=True)
+                yield scrapy.Request(url=url, callback=self.parse_tag_list, meta=meta, dont_filter=True)
             # break
 
     def parse_tag_list(self, response):
@@ -1095,24 +1094,25 @@ class KaoyanElevenSpider(scrapy.Spider):
         del elems[7]
         for elem in elems:
             try:
-                item = response.meta['item']
+                meta = response.meta
                 tag_name = elem.xpath('./a/text()').extract_first()
-                item['tag_name'] = tag_name
+                meta['tag_name'] = tag_name
                 tag_url = elem.xpath('./a/@href').extract_first()
                 if tag_url:
                     if 'http' not in tag_url:
                         tag_url = self.base_url + tag_url
-                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+                    yield scrapy.Request(url=tag_url, callback=self.parse_list, meta=meta, dont_filter=True)
             except Exception as e:
                 print('获取标签地址错误', e)
                 continue
 
     def parse_list(self, response):
         elems = response.xpath('//ul[@class="subList"]/li')
-        item = response.meta['item']
         for elem in elems:
             try:
-                item = response.meta['item']
+                item = KaoyanItem()
+                item['school_name'] = response.meta['school_name']
+                item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
                 item['content_title'] = deal_title(content_title) if content_title else ''
                 item['content'] = ''
@@ -1125,12 +1125,12 @@ class KaoyanElevenSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
-
+        meta = response.meta
         next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
         if next_page_url:
             if 'http' not in next_page_url:
                 next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta={"item": item}, dont_filter=True)
+            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:

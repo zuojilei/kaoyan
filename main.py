@@ -10,13 +10,13 @@ confs = [
     'kaoyan_one',
     'kaoyan_two',
     'kaoyan_three',
-    # 'kaoyan_four',
-    # 'kaoyan_five',
-    # 'kaoyan_six',
+    'kaoyan_four',
+    'kaoyan_five',
+    'kaoyan_six',
     'kaoyan_seven',
-    # 'kaoyan_eight',
-    # 'kaoyan_nine',
-    # 'kaoyan_eleven'
+    'kaoyan_eight',
+    'kaoyan_nine',
+    'kaoyan_eleven'
 ]
 
 def start_spider(spider_name):
