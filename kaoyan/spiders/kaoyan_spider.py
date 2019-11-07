@@ -18,7 +18,7 @@ class KaoyanOneSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[0:11]
+        elems = response.xpath('//dl[@class="schoolListItem"]')
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -64,12 +64,12 @@ class KaoyanOneSpider(scrapy.Spider):
             except Exception as e:
                 print('详情页地址不允许访问',e)
                 continue
-        meta = response.meta
-        next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
-        if next_page_url:
-            if 'http' not in next_page_url:
-                next_page_url = self.base_url + next_page_url
-            yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
+        # meta = response.meta
+        # next_page_url = response.xpath('//div[@class="tPage"]/a[text()="下一页"]/@href').extract_first()
+        # if next_page_url:
+        #     if 'http' not in next_page_url:
+        #         next_page_url = self.base_url + next_page_url
+        #     yield scrapy.Request(url=next_page_url, callback=self.parse_list, meta=meta, dont_filter=True)
 
     def parse_detail(self, response):
         try:
@@ -134,7 +134,7 @@ class KaoyanTwoSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[11:21]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[211:216]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -252,7 +252,7 @@ class KaoyanthreeSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[21:31]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[121:131]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -370,7 +370,7 @@ class KaoyanFourSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[31:41]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[131:141]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -488,7 +488,7 @@ class KaoyanFiveSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[41:51]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[141:151]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -606,7 +606,7 @@ class KaoyanSixSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[51:61]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[151:161]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -724,7 +724,7 @@ class KaoyanSevenSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[61:71]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[161:171]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -842,7 +842,7 @@ class KaoyanEightSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[71:81]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[171:181]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -960,7 +960,7 @@ class KaoyanNineSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[81:91]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[181:191]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
@@ -1078,7 +1078,7 @@ class KaoyanElevenSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        elems = response.xpath('//dl[@class="schoolListItem"]')[91:101]
+        elems = response.xpath('//dl[@class="schoolListItem"]')[191:201]
         for elem in elems:
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
