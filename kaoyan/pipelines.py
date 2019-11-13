@@ -32,8 +32,8 @@ class KaoyanPipeline(object):
             self.mongo.insert_one(str_wash(dict(item)))
             dir_path = self.file_path(item)
             self.content_pdf(item, dir_path)
-            time.sleep(2)
-            self.download_pdf(item, dir_path)
+            # time.sleep(2)
+            # self.download_pdf(item, dir_path)
         return item
 
     def file_path(self, item):
@@ -151,7 +151,6 @@ class KaoyanPipeline(object):
             config = pdfkit.configuration(wkhtmltopdf=path_wk)
             pdfkit.from_string(html, file, configuration=config)
             print('*************网页合成pdf成功*****************')
-            item['download_status'] = 1
             return item
         except Exception as e:
             print(e)
