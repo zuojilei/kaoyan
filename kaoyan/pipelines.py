@@ -37,8 +37,8 @@ class KaoyanPipeline(object):
         return item
 
     def file_path(self, item):
-        if item['school_name'] and item['tag_name'] and item['content_title']:
-            dir_path = 'D:\\data\\%s\\%s\\%s\\' % (item['school_name'],item['tag_name'], item['content_title'])
+        if item['province'] and item['school_name'] and item['tag_name'] and item['content_title']:
+            dir_path = 'D:\\data\\%s\\%s\\%s\\%s\\' % (item['province'],item['school_name'],item['tag_name'], item['content_title'])
             is_exists = os.path.exists(dir_path)
             if not is_exists:
                 os.makedirs(dir_path)

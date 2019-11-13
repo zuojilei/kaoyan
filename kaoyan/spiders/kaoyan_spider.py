@@ -6,7 +6,7 @@ from kaoyan.tool.common_def import *
 class KaoyanOneSpider(scrapy.Spider):
     name = 'kaoyan_one'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -16,13 +16,52 @@ class KaoyanOneSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province':'北京','url':'http://www.kaoyan.com/beijing/'},
+           {'province':'江苏','url':'http://www.kaoyan.com/jiangsu/'},
+           {'province':'上海','url':'http://www.kaoyan.com/shanghai/'},
+           {'province':'广东','url':'http://www.kaoyan.com/guangdong/'},
+           {'province':'陕西','url':'http://www.kaoyan.com/shaanxi/'},
+           {'province':'湖北','url':'http://www.kaoyan.com/hubei/'},
+           {'province':'山东','url':'http://www.kaoyan.com/shandong/'},
+           {'province':'辽宁','url':'http://www.kaoyan.com/liaoning/'},
+           {'province':'河北','url':'http://www.kaoyan.com/hebei/'},
+           {'province':'四川','url':'http://www.kaoyan.com/sichuan/'},
+           {'province':'天津','url':'http://www.kaoyan.com/tianjin/'},
+           {'province':'浙江','url':'http://www.kaoyan.com/zhejiang/'},
+           {'province':'湖南','url':'http://www.kaoyan.com/hunan/'},
+           {'province':'重庆','url':'http://www.kaoyan.com/chongqing/'},
+           {'province':'安徽','url':'http://www.kaoyan.com/anhui/'},
+           {'province':'河南','url':'http://www.kaoyan.com/henan/'},
+           {'province':'吉林','url':'http://www.kaoyan.com/jilin/'},
+           {'province':'福建','url':'http://www.kaoyan.com/fujian/'},
+           {'province':'云南','url':'http://www.kaoyan.com/yunnan/'},
+           {'province':'山西','url':'http://www.kaoyan.com/shanxi/'},
+           {'province':'江西','url':'http://www.kaoyan.com/jiangxi/'},
+           {'province':'甘肃','url':'http://www.kaoyan.com/gansu/'},
+           {'province':'广西','url':'http://www.kaoyan.com/guangxi/'},
+           {'province':'贵州','url':'http://www.kaoyan.com/guizhou/'},
+           {'province':'新疆','url':'http://www.kaoyan.com/xinjiang/'},
+           {'province':'海南','url':'http://www.kaoyan.com/hainan/'},
+           {'province':'青海','url':'http://www.kaoyan.com/qinghai/'},
+           {'province':'宁夏','url':'http://www.kaoyan.com/ningxia/'},
+           {'province':'西藏','url':'http://www.kaoyan.com/xizang/'},
+           {'province':'黑龙江','url':'http://www.kaoyan.com/heilongjiang/'},
+           {'province':'内蒙古','url':'http://www.kaoyan.com/neimenggu/'},
+           ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province':dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url,callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')
         for elem in elems:
+            meta = response.meta
             school_name = elem.xpath('./dt/a/text()').extract_first()
             url = elem.xpath('./dd[@class="quickItem"]/a/@href').extract_first()
-            meta = {'school_name':school_name if school_name else ''}
+            meta['school_name'] = school_name if school_name else ''
             if url:
                 if 'http' not in url:
                     url = self.base_url + url
@@ -51,6 +90,7 @@ class KaoyanOneSpider(scrapy.Spider):
         for elem in elems:
             try:
                 item = KaoyanItem()
+                item['province'] = response.meta['province']
                 item['school_name'] = response.meta['school_name']
                 item['tag_name'] = response.meta['tag_name']
                 content_title = elem.xpath('./a/text()').extract_first()
@@ -122,7 +162,7 @@ class KaoyanOneSpider(scrapy.Spider):
 class KaoyanTwoSpider(scrapy.Spider):
     name = 'kaoyan_two'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -132,6 +172,44 @@ class KaoyanTwoSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[211:216]
@@ -240,7 +318,7 @@ class KaoyanTwoSpider(scrapy.Spider):
 class KaoyanthreeSpider(scrapy.Spider):
     name = 'kaoyan_three'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -250,6 +328,44 @@ class KaoyanthreeSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[121:131]
@@ -358,7 +474,7 @@ class KaoyanthreeSpider(scrapy.Spider):
 class KaoyanFourSpider(scrapy.Spider):
     name = 'kaoyan_four'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -368,6 +484,44 @@ class KaoyanFourSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[131:141]
@@ -476,7 +630,7 @@ class KaoyanFourSpider(scrapy.Spider):
 class KaoyanFiveSpider(scrapy.Spider):
     name = 'kaoyan_five'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -486,6 +640,44 @@ class KaoyanFiveSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[141:151]
@@ -594,7 +786,7 @@ class KaoyanFiveSpider(scrapy.Spider):
 class KaoyanSixSpider(scrapy.Spider):
     name = 'kaoyan_six'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -604,6 +796,44 @@ class KaoyanSixSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[151:161]
@@ -712,7 +942,7 @@ class KaoyanSixSpider(scrapy.Spider):
 class KaoyanSevenSpider(scrapy.Spider):
     name = 'kaoyan_seven'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -722,6 +952,44 @@ class KaoyanSevenSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[161:171]
@@ -830,7 +1098,7 @@ class KaoyanSevenSpider(scrapy.Spider):
 class KaoyanEightSpider(scrapy.Spider):
     name = 'kaoyan_eight'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -840,6 +1108,44 @@ class KaoyanEightSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[171:181]
@@ -948,7 +1254,7 @@ class KaoyanEightSpider(scrapy.Spider):
 class KaoyanNineSpider(scrapy.Spider):
     name = 'kaoyan_nine'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -958,6 +1264,44 @@ class KaoyanNineSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[181:191]
@@ -1066,7 +1410,7 @@ class KaoyanNineSpider(scrapy.Spider):
 class KaoyanElevenSpider(scrapy.Spider):
     name = 'kaoyan_eleven'
     allowed_domains = ['kaoyan.com']
-    start_urls = ['http://www.kaoyan.com/beijing/']
+    # start_urls = ['http://www.kaoyan.com/beijing/']
     base_url = 'http://www.kaoyan.com'
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -1076,6 +1420,44 @@ class KaoyanElevenSpider(scrapy.Spider):
         },
         'DOWNLOAD_DELAY': 1
     }
+    dics = [{'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+            {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
+            {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
+            {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
+            {'province': '陕西', 'url': 'http://www.kaoyan.com/shaanxi/'},
+            {'province': '湖北', 'url': 'http://www.kaoyan.com/hubei/'},
+            {'province': '山东', 'url': 'http://www.kaoyan.com/shandong/'},
+            {'province': '辽宁', 'url': 'http://www.kaoyan.com/liaoning/'},
+            {'province': '河北', 'url': 'http://www.kaoyan.com/hebei/'},
+            {'province': '四川', 'url': 'http://www.kaoyan.com/sichuan/'},
+            {'province': '天津', 'url': 'http://www.kaoyan.com/tianjin/'},
+            {'province': '浙江', 'url': 'http://www.kaoyan.com/zhejiang/'},
+            {'province': '湖南', 'url': 'http://www.kaoyan.com/hunan/'},
+            {'province': '重庆', 'url': 'http://www.kaoyan.com/chongqing/'},
+            {'province': '安徽', 'url': 'http://www.kaoyan.com/anhui/'},
+            {'province': '河南', 'url': 'http://www.kaoyan.com/henan/'},
+            {'province': '吉林', 'url': 'http://www.kaoyan.com/jilin/'},
+            {'province': '福建', 'url': 'http://www.kaoyan.com/fujian/'},
+            {'province': '云南', 'url': 'http://www.kaoyan.com/yunnan/'},
+            {'province': '山西', 'url': 'http://www.kaoyan.com/shanxi/'},
+            {'province': '江西', 'url': 'http://www.kaoyan.com/jiangxi/'},
+            {'province': '甘肃', 'url': 'http://www.kaoyan.com/gansu/'},
+            {'province': '广西', 'url': 'http://www.kaoyan.com/guangxi/'},
+            {'province': '贵州', 'url': 'http://www.kaoyan.com/guizhou/'},
+            {'province': '新疆', 'url': 'http://www.kaoyan.com/xinjiang/'},
+            {'province': '海南', 'url': 'http://www.kaoyan.com/hainan/'},
+            {'province': '青海', 'url': 'http://www.kaoyan.com/qinghai/'},
+            {'province': '宁夏', 'url': 'http://www.kaoyan.com/ningxia/'},
+            {'province': '西藏', 'url': 'http://www.kaoyan.com/xizang/'},
+            {'province': '黑龙江', 'url': 'http://www.kaoyan.com/heilongjiang/'},
+            {'province': '内蒙古', 'url': 'http://www.kaoyan.com/neimenggu/'},
+            ]
+
+    def start_requests(self):
+        for dic in self.dics:
+            meta = {'province': dic.get('province')}
+            url = dic.get('url')
+            yield scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 
     def parse(self, response):
         elems = response.xpath('//dl[@class="schoolListItem"]')[191:201]

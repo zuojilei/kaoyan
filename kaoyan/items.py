@@ -31,3 +31,6 @@ class KaoyanItem(scrapy.Item):
     download_status = scrapy.Field()
 
     pdate= scrapy.Field()
+
+    #省份
+    province = scrapy.Field()
