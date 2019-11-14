@@ -21,6 +21,8 @@ NEWSPIDER_MODULE = 'kaoyan.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
+RETRY_HTTP_CODES = [401, 403, 408, 414, 500, 502, 503, 504]
+
 # LOG_LEVEL= "WARNING"
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
