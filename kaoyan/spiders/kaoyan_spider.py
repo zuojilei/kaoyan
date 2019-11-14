@@ -15,10 +15,10 @@ class KaoyanOneSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
-        {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+        # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
         {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
         {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
         {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
@@ -176,7 +176,7 @@ class KaoyanTwoSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
@@ -336,7 +336,7 @@ class KaoyanthreeSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
@@ -496,7 +496,7 @@ class KaoyanFourSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
@@ -656,7 +656,7 @@ class KaoyanFiveSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
@@ -816,7 +816,7 @@ class KaoyanSixSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
@@ -976,7 +976,7 @@ class KaoyanSevenSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
@@ -1136,7 +1136,7 @@ class KaoyanEightSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
@@ -1296,10 +1296,10 @@ class KaoyanNineSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
-        # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
+        {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
         # {'province': '江苏', 'url': 'http://www.kaoyan.com/jiangsu/'},
         # {'province': '上海', 'url': 'http://www.kaoyan.com/shanghai/'},
         # {'province': '广东', 'url': 'http://www.kaoyan.com/guangdong/'},
@@ -1456,7 +1456,7 @@ class KaoyanElevenSpider(scrapy.Spider):
             # 'spider.pipeline.pipelines.ImageToPdfPipeline': 120,
             # 'spider.pipeline.pipelines.ReportsMssqlPipeline': 130,
         },
-        'DOWNLOAD_DELAY': 1
+        # 'DOWNLOAD_DELAY': 1
     }
     dics = [
         # {'province': '北京', 'url': 'http://www.kaoyan.com/beijing/'},
