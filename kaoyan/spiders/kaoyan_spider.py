@@ -72,7 +72,6 @@ class KaoyanOneSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -100,10 +99,12 @@ class KaoyanOneSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -125,7 +126,7 @@ class KaoyanOneSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -233,7 +234,6 @@ class KaoyanTwoSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -261,10 +261,12 @@ class KaoyanTwoSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -286,7 +288,7 @@ class KaoyanTwoSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -393,7 +395,6 @@ class KaoyanthreeSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -421,10 +422,12 @@ class KaoyanthreeSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -446,7 +449,7 @@ class KaoyanthreeSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -553,7 +556,6 @@ class KaoyanFourSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -581,10 +583,12 @@ class KaoyanFourSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -606,7 +610,7 @@ class KaoyanFourSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -713,7 +717,6 @@ class KaoyanFiveSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -741,10 +744,12 @@ class KaoyanFiveSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -766,7 +771,7 @@ class KaoyanFiveSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -873,7 +878,6 @@ class KaoyanSixSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -901,10 +905,12 @@ class KaoyanSixSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -926,7 +932,7 @@ class KaoyanSixSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -1033,7 +1039,6 @@ class KaoyanSevenSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -1061,10 +1066,12 @@ class KaoyanSevenSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -1086,7 +1093,7 @@ class KaoyanSevenSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -1193,7 +1200,6 @@ class KaoyanEightSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -1221,10 +1227,12 @@ class KaoyanEightSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -1246,7 +1254,7 @@ class KaoyanEightSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -1353,7 +1361,6 @@ class KaoyanNineSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -1381,10 +1388,12 @@ class KaoyanNineSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -1406,7 +1415,7 @@ class KaoyanNineSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:
@@ -1513,7 +1522,6 @@ class KaoyanElevenSpider(scrapy.Spider):
 
     def parse_tag_list(self, response):
         elems = response.xpath('//ul[@class="subGuideList"]/li')
-        del elems[7]
         for elem in elems:
             try:
                 meta = response.meta
@@ -1541,10 +1549,12 @@ class KaoyanElevenSpider(scrapy.Spider):
                 item['content'] = ''
                 detail_url = elem.xpath('./a/@href').extract_first()
                 if detail_url:
-                    if 'http' not in detail_url:
-                        detail_url = self.base_url + detail_url
-                    yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
-                                         dont_filter=True)
+                    if 'download-' not in detail_url:
+                        yield scrapy.Request(url=detail_url, callback=self.parse_detail, meta={"item": item},
+                                             dont_filter=True)
+                    else:
+                        print('&&&&&&&&&&&&&&&&&&详情页不符合&&&&&&&&&&&&&&&&&&&&&&&&&&')
+
             except Exception as e:
                 print('详情页地址不允许访问', e)
                 continue
@@ -1566,7 +1576,7 @@ class KaoyanElevenSpider(scrapy.Spider):
                 if pdate:
                     pdate = pdate.split(' ')[0]
                     year = int(pdate.split('-')[0])
-                    if year < 2017:
+                    if year < 2019:
                         print('********************%s年的数据***************************' % year)
                         return
                     else:

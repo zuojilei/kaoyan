@@ -23,7 +23,7 @@ ROBOTSTXT_OBEY = False
 
 RETRY_HTTP_CODES = [401, 403, 408, 414, 500, 502, 503, 504]
 
-# LOG_LEVEL= "WARNING"
+LOG_LEVEL= "WARNING"
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 32
@@ -85,7 +85,7 @@ CONCURRENT_REQUESTS_PER_IP = 16
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False    #启动自动限速的debug
 DOWNLOAD_TINEOUT = 5  #连接超时限制15秒
-
+RETRY_TIMES = 2  #设置重试请求次数
 # Enable and configure HTTP caching (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 #HTTPCACHE_ENABLED = True
